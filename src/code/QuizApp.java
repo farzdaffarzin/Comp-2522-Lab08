@@ -21,15 +21,27 @@ import java.util.*;
 public class QuizApp extends Application{
 
     private final int MAX_QUESTION_NUMBER = 10;
-    private final int START_QUESTION_NUMBER = 1;
+    private final int START_QUESTION_NUMBER = 0;
 
-    private int currentQuestion = 0;
-    private int score = 0;
-    private final List<String[]> questionsList = new ArrayList<>();
-    private TextField answerField;
-    private Label questionLabel, scoreLabel;
-    private Button startButton;
-    private final List<String[]> missedQuestions = new ArrayList<>();
+
+    private int         currentQuestion;
+    private int         score;
+    private TextField   answerField;
+    private Label       questionLabel;
+    private Label       scoreLabel;
+    private Button      startButton;
+
+    private final List<String[]> missedQuestions;
+    private final List<String[]> questionsList;
+    
+    /**
+     * Constructor for the QuizApp class.
+     * Initializes the lists for missed questions and questions.
+     */
+    public QuizApp() {
+        this.missedQuestions = new ArrayList<>();
+        this.questionsList = new ArrayList<>();
+    }
 
     /**
      * The main entry point for the JavaFX application.
@@ -79,10 +91,11 @@ public class QuizApp extends Application{
 
     // Loads questions from a file into the questions list.
     private void loadQuestions(){
-        final BufferedReader reader;
 
-        try(final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("quiz.txt")){
+        try(InputStream inputStream = getClass().getClassLoader().getResourceAsStream("quiz.txt")){
             assert inputStream != null;
+
+            final BufferedReader reader;
 
             reader = new BufferedReader(new InputStreamReader(inputStream));
             String line;
@@ -109,8 +122,7 @@ public class QuizApp extends Application{
 
     // Display next question in the list/ends quiz if all questions answered.
     private void nextQuestion(){
-        if(currentQuestion < MAX_QUESTION_NUMBER &&
-                currentQuestion < questionsList.size()){
+        if(currentQuestion < MAX_QUESTION_NUMBER && currentQuestion < questionsList.size()){
 
             questionLabel.setText(questionsList.get(currentQuestion)[START_QUESTION_NUMBER]);
             answerField.clear();
