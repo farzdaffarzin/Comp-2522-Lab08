@@ -22,25 +22,29 @@ public class QuizApp extends Application{
 
     private final int MAX_QUESTION_NUMBER = 10;
     private final int START_QUESTION_NUMBER = 0;
+    private final int START_MISSED_NUMBER = 0;
+    private final int INCREMENT_QUESTION_NUMBER = 1;
 
-
-    private int         currentQuestion;
-    private int         score;
-    private TextField   answerField;
-    private Label       questionLabel;
-    private Label       scoreLabel;
-    private Button      startButton;
+    private int                 currentQuestion;
+    private int                 score;
+    private final TextField     answerField;
+    private final Label         questionLabel;
+    private final Label         scoreLabel;
+    private final Button        startButton;
+    private final Button        submitButton;
 
     private final List<String[]> missedQuestions;
     private final List<String[]> questionsList;
-    
-    /**
-     * Constructor for the QuizApp class.
-     * Initializes the lists for missed questions and questions.
-     */
+
+    // Constructor for the QuizApp class.
     public QuizApp() {
         this.missedQuestions = new ArrayList<>();
         this.questionsList = new ArrayList<>();
+        this.startButton = new Button("Start Quiz");
+        this.questionLabel = new Label("Press 'Start Quiz' to begin");
+        this.answerField = new TextField();
+        this.scoreLabel = new Label("Score: 0");
+        this.submitButton = new Button("Submit");
     }
 
     /**
@@ -53,33 +57,24 @@ public class QuizApp extends Application{
     public void start(final Stage primaryStage){
 
         final Scene scene;
-        final Button submitButton;
+        final VBox root;
 
         // Load questions when the app starts
         loadQuestions();
 
-        VBox root = new VBox(10);
+        root = new VBox(10);
         root.getStyleClass().add("vbox");
 
-        startButton = new Button("Start Quiz");
         startButton.setOnAction(e -> startQuiz());
-
-        questionLabel = new Label("Press 'Start Quiz' to begin");
-        answerField = new TextField();
         answerField.setOnKeyPressed(e -> {
             if(e.getCode() == KeyCode.ENTER){
                 checkAnswer();
             }
         });
 
-
-        submitButton = new Button("Submit");
         submitButton.setOnAction(e -> checkAnswer());
 
-        scoreLabel = new Label("Score: 0");
-
         root.getChildren().addAll(startButton, questionLabel, answerField, submitButton, scoreLabel);
-
 
         scene = new Scene(root, 400, 300);
         scene.getStylesheets().add(Objects.requireNonNull(getClass().
@@ -92,7 +87,7 @@ public class QuizApp extends Application{
     // Loads questions from a file into the questions list.
     private void loadQuestions(){
 
-        try(InputStream inputStream = getClass().getClassLoader().getResourceAsStream("quiz.txt")){
+        try(final InputStream inputStream = getClass().getClassLoader().getResourceAsStream("quiz.txt")){
             assert inputStream != null;
 
             final BufferedReader reader;
@@ -112,8 +107,6 @@ public class QuizApp extends Application{
 
     // Start quiz by resetting the score and question index & displaying first question.
     private void startQuiz(){
-        currentQuestion = 0;
-        score = 0;
         missedQuestions.clear();
         nextQuestion();
         scoreLabel.setText("Score: 0");
@@ -122,7 +115,8 @@ public class QuizApp extends Application{
 
     // Display next question in the list/ends quiz if all questions answered.
     private void nextQuestion(){
-        if(currentQuestion < MAX_QUESTION_NUMBER && currentQuestion < questionsList.size()){
+        if(currentQuestion < MAX_QUESTION_NUMBER &&
+                currentQuestion < questionsList.size()){
 
             questionLabel.setText(questionsList.get(currentQuestion)[START_QUESTION_NUMBER]);
             answerField.clear();
@@ -168,9 +162,9 @@ public class QuizApp extends Application{
             missed = new StringBuilder("Missed Questions:\n");
 
             for(String[] missedQuestion : missedQuestions){
-                missed.append(missedQuestion[0]).
+                missed.append(missedQuestion[START_MISSED_NUMBER]).
                         append(" | Correct Answer: ").
-                        append(missedQuestion[1]).
+                        append(missedQuestion[INCREMENT_QUESTION_NUMBER]).
                         append("\n");
             }
 
