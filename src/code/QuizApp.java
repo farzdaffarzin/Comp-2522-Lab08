@@ -6,7 +6,6 @@ import javafx.stage.Stage;
 import javafx.scene.input.KeyCode;
 
 import java.io.*;
-import java.net.URL;
 import java.util.*;
 
 /**
@@ -20,10 +19,13 @@ import java.util.*;
  */
 public class QuizApp extends Application{
 
-    private final int MAX_QUESTION_NUMBER = 10;
-    private final int START_QUESTION_NUMBER = 0;
-    private final int START_MISSED_NUMBER = 0;
-    private final int INCREMENT_QUESTION_NUMBER = 1;
+    private static final int MAX_QUESTION_NUMBER = 10;
+    private static final int START_QUESTION_NUMBER = 0;
+    private static final int INIT_SCORE_VALUE = 0;
+    private static final int START_MISSED_NUMBER = 0;
+    private static final int INCREMENT_QUESTION_NUMBER = 1;
+    private static final int CURRENT_QUES_ANS_INDEX = 1;
+    private static final int SPLIT_LENGTH_NUM = 2;
 
     private int                 currentQuestion;
     private int                 score;
@@ -96,10 +98,13 @@ public class QuizApp extends Application{
             String line;
             while((line = reader.readLine()) != null){
                 String[] parts = line.split("\\|");
-                if(parts.length == 2){
+                if(parts.length == SPLIT_LENGTH_NUM){
                     questionsList.add(parts);
                 }
             }
+
+            // Shuffle questions to randomize them
+            Collections.shuffle(questionsList);
         }catch(IOException e){
             e.printStackTrace();
         }
@@ -108,9 +113,14 @@ public class QuizApp extends Application{
     // Start quiz by resetting the score and question index & displaying first question.
     private void startQuiz(){
         missedQuestions.clear();
-        nextQuestion();
+        currentQuestion = START_QUESTION_NUMBER;
+        score = INIT_SCORE_VALUE;
         scoreLabel.setText("Score: 0");
         startButton.setDisable(true);
+
+        // Shuffle questions again at the start of each quiz
+        Collections.shuffle(questionsList);
+        nextQuestion();
     }
 
     // Display next question in the list/ends quiz if all questions answered.
@@ -132,7 +142,7 @@ public class QuizApp extends Application{
         final String correctAnswer;
 
         userAnswer = answerField.getText().trim();
-        correctAnswer = questionsList.get(currentQuestion)[1];
+        correctAnswer = questionsList.get(currentQuestion)[CURRENT_QUES_ANS_INDEX];
 
         if(userAnswer.equalsIgnoreCase(correctAnswer)){
             score++;
@@ -140,14 +150,16 @@ public class QuizApp extends Application{
             missedQuestions.add(questionsList.get(currentQuestion));
         }
 
-        scoreLabel.setText("Score: " + score);
+        scoreLabel.setText("Score: " +
+                score);
         currentQuestion++;
         nextQuestion();
     }
 
     // Ends the quiz, display user final score, and show missed questions.
     private void endQuiz(){
-        questionLabel.setText("Quiz Finished! Your Score: " + score);
+        questionLabel.setText("Quiz Finished! Your Score: " +
+                score);
         displayMissedQuestions();
         startButton.setDisable(false);
     }
@@ -158,6 +170,7 @@ public class QuizApp extends Application{
         if(!missedQuestions.isEmpty()){
             final StringBuilder missed;
             final Alert alert;
+            final TextArea textArea;
 
             missed = new StringBuilder("Missed Questions:\n");
 
@@ -168,8 +181,18 @@ public class QuizApp extends Application{
                         append("\n");
             }
 
-            alert = new Alert(Alert.AlertType.INFORMATION, missed.toString(), ButtonType.OK);
+            textArea = new TextArea(missed.toString());
+            textArea.setEditable(false);
+            textArea.setWrapText(true);
+            textArea.setPrefSize(400, 200);
+
+            final ScrollPane scrollPane = new ScrollPane(textArea);
+            scrollPane.setFitToWidth(true);
+
+            alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setHeaderText("Review Missed Questions");
+            alert.getDialogPane().setContent(scrollPane);
+            alert.getDialogPane().setPrefSize(420, 220);
             alert.showAndWait();
         }
     }
